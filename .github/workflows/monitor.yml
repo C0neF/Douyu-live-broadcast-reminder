@@ -3,7 +3,7 @@ name: Douyu Live Status Checker
 on:
   schedule:
     # 每分钟执行一次
-    - cron: '*/1 * * * *'
+    - cron: '*/2 * * * *'
 
 jobs:
   check-live-status:
