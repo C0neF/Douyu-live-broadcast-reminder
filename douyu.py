@@ -2,9 +2,9 @@ import requests
 import time
 import os
 
-# 主播的房间ID列表
-room_ids = ['71415', '84452']  # 添加更多主播的房间ID
-# pushplus的token
+# 从环境变量获取主播的房间ID列表
+room_ids = os.getenv('ROOM_IDS').split(',') if os.getenv('ROOM_IDS') else []
+# 从环境变量获取pushplus的token
 pushplus_token = os.getenv('PUSHPLUS_TOKEN')
 
 def check_live_status(room_id):
