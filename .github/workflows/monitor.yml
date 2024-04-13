@@ -1,20 +1,26 @@
-name: Check Live Status Workflow
+name: Douyu Live Status Checker
+
 on:
   schedule:
+    # 每分钟执行一次
     - cron: '*/1 * * * *'
+
 jobs:
   check-live-status:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Set up Python
+
+      - name: Set up Python environment
         uses: actions/setup-python@v3
         with:
           python-version: '3.x'
+
       - name: Install dependencies
         run: pip install requests
-      - name: Execute script
+
+      - name: Run douyu.py
         env:
           ROOM_IDS: ${{ secrets.ROOM_IDS }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
