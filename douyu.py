@@ -1,5 +1,4 @@
 import requests
-import time
 import os
 
 # 从环境变量获取主播的房间ID列表
@@ -44,24 +43,22 @@ def send_pushplus_message(token, title, content):
 
 def main():
     live_statuses = {room_id: False for room_id in room_ids}  # 记录每个主播的开播状态
-    while True:
-        for room_id in room_ids:
-            is_live, room_name, owner_name = check_live_status(room_id)
-            live_status = '已开播' if is_live else '未开播'
-            print(f'{owner_name} ({room_id}): {live_status}')
-            if is_live and not live_statuses[room_id]:
-                # 如果主播开播，并且之前的状态是未开播，则发送通知
-                title = f'{owner_name} 开播啦！'
-                content = f'快来看看{owner_name}的直播间：{room_name}！'
-                response = send_pushplus_message(pushplus_token, title, content)
-                if response:
-                    print(f'{owner_name}的开播通知已发送。')
-                else:
-                    print(f'发送{owner_name}的开播通知失败。')
-                live_statuses[room_id] = True  # 更新主播的开播状态
-            elif not is_live:
-                live_statuses[room_id] = False  # 如果主播未开播，重置状态
-        time.sleep(60)  # 每60秒检查一次
+    for room_id in room_ids:
+        is_live, room_name, owner_name = check_live_status(room_id)
+        live_status = '已开播' if is_live else '未开播'
+        print(f'{owner_name} ({room_id}): {live_status}')
+        if is_live and not live_statuses[room_id]:
+            # 如果主播开播，并且之前的状态是未开播，则发送通知
+            title = f'{owner_name} 开播啦！'
+            content = f'快来看看{owner_name}的直播间：{room_name}！'
+            response = send_pushplus_message(pushplus_token, title, content)
+            if response:
+                print(f'{owner_name}的开播通知已发送。')
+            else:
+                print(f'发送{owner_name}的开播通知失败。')
+            live_statuses[room_id] = True  # 更新主播的开播状态
+        elif not is_live:
+            live_statuses[room_id] = False  # 如果主播未开播，重置状态
 
 if __name__ == '__main__':
     main()
