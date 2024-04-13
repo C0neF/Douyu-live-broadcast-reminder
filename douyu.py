@@ -1,5 +1,6 @@
 import requests
 import os
+import json
 
 # 从环境变量获取主播的房间ID列表
 room_ids = os.getenv('ROOM_IDS').split(',') if os.getenv('ROOM_IDS') else []
@@ -41,15 +42,33 @@ def send_pushplus_message(token, title, content):
         print(f'请求错误: {e}')
         return None
 
+def load_live_statuses():
+    """
+    从文件加载主播的开播状态
+    """
+    live_statuses_path = os.getenv('LIVE_STATUSES_PATH', 'live_statuses.json')
+    if os.path.exists(live_statuses_path):
+        with open(live_statuses_path, 'r') as file:
+            return json.load(file)
+    else:
+        return {room_id: False for room_id in room_ids}
+
+def save_live_statuses(live_statuses):
+    """
+    将主播的开播状态保存到文件
+    """
+    live_statuses_path = os.getenv('LIVE_STATUSES_PATH', 'live_statuses.json')
+    with open(live_statuses_path, 'w') as file:
+        json.dump(live_statuses, file)
+
 def main():
-    # 记录每个主播的开播状态
-    live_statuses = {room_id: False for room_id in room_ids}
+    live_statuses = load_live_statuses()  # 从文件加载每个主播的开播状态
     for room_id in room_ids:
         is_live, room_name, owner_name = check_live_status(room_id)
         live_status = '已开播' if is_live else '未开播'
         print(f'{owner_name} ({room_id}): {live_status}')
-        # 如果主播开播，并且之前的状态是未开播，则发送通知
-        if is_live and not live_statuses[room_id]:
+        if is_live and not live_statuses.get(room_id, False):
+            # 如果主播开播，并且之前的状态是未开播，则发送通知
             title = f'{owner_name} 开播啦！'
             content = f'快来看看{owner_name}的直播间：{room_name}！'
             response = send_pushplus_message(pushplus_token, title, content)
@@ -57,11 +76,10 @@ def main():
                 print(f'{owner_name}的开播通知已发送。')
             else:
                 print(f'发送{owner_name}的开播通知失败。')
-            # 更新主播的开播状态
-            live_statuses[room_id] = True
-        # 如果主播未开播，重置状态
-        elif not is_live and live_statuses[room_id]:
-            live_statuses[room_id] = False
+            live_statuses[room_id] = True  # 更新主播的开播状态
+        elif not is_live:
+            live_statuses[room_id] = False  # 如果主播未开播，重置状态
+    save_live_statuses(live_statuses)  # 将更新后的状态保存到文件
 
 if __name__ == '__main__':
     main()

@@ -1,27 +1,35 @@
-name: Douyu Live Status Checker
+name: Check Live Status and Notify
 
 on:
   schedule:
-    # 每分钟执行一次
-    - cron: '*/1 * * * *'
+    - cron: '*/1 * * * *'  # 每分钟执行一次
 
 jobs:
-  check-live-status:
+  check-and-notify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up Python environment
-        uses: actions/setup-python@v3
+      - name: Cache live statuses
+        uses: actions/cache@v2
+        with:
+          path: live_statuses.json
+          key: live-statuses-${{ github.run_id }}
+          restore-keys: |
+            live-statuses-
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
       - name: Install dependencies
         run: pip install requests
 
-      - name: Run douyu.py
+      - name: Run script
         env:
+          LIVE_STATUSES_PATH: live_statuses.json
           ROOM_IDS: ${{ secrets.ROOM_IDS }}
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
         run: python douyu.py
